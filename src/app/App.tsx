@@ -2,12 +2,14 @@ import React from 'react'
 import './App.less'
 import { Layout } from 'antd'
 
+import { TreePage } from '../pages'
+
 export function App() {
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Layout.Header style={{ color: 'white'}}>Header</Layout.Header>
+      <Layout.Header style={{ color: 'white' }}>Header</Layout.Header>
       <Layout.Content style={{ padding: '20px 50px' }}>
-        content
+        <TreePage />
         {/* <ApplicationRoutes routes={ROUTES} /> */}
       </Layout.Content>
       <Layout.Footer

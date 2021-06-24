@@ -1,26 +1,29 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
-export interface TreeItem {
-  value: string
-  parent: TreeItem
-  children: TreeItem[]
-}
-
+import { defaultDBFlatTree } from './constants'
+import { TreeItem } from './types'
+import { adoptDBItemsToTree } from './utils'
 export interface TreeState {
   items: TreeItem[]
+  cache: TreeItem[]
 }
 
 const initialState: TreeState = {
-  items: [] as TreeItem[]
+  items: adoptDBItemsToTree(defaultDBFlatTree),
+  cache: [] as TreeItem[]
 }
 
 const treeSlice = createSlice({
   name: 'public-repo-show/repos',
   initialState,
   reducers: {
-    add: (state, action: PayloadAction<TreeItem>) => {},
+    add: (state, action: PayloadAction<string[]>) => {
+    },
     remove: (state, action: PayloadAction<TreeItem>) => {},
-    reset: state => {}
+    reset: state => {
+      state.items = adoptDBItemsToTree(defaultDBFlatTree)
+      state.cache = [] as TreeItem[]
+    }
   }
 })
 
