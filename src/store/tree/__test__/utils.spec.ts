@@ -1,6 +1,11 @@
 import { defaultDBFlatTree } from '../constants'
-import { getRootNode, getNestedNodes, adoptDBItemsToTree } from '../utils'
-
+import {
+  getRootItem,
+  getChildrenItems,
+  getItemByKey,
+  addItemsToTree,
+  adoptDBItemsToTree
+} from '../utils'
 
 /**
  * Default tree. key of each element is unique value. It used as a
@@ -24,7 +29,8 @@ const testTree = [
             title: '0-0-0',
             parent: '0-0',
             deleted: false,
-            key: '0-0-0'
+            key: '0-0-0',
+            children: []
           },
           {
             title: '0-0-1',
@@ -36,7 +42,8 @@ const testTree = [
                 title: '0-0-0-0',
                 parent: '0-0-1',
                 deleted: false,
-                key: '0-0-0-0'
+                key: '0-0-0-0',
+                children: []
               },
               {
                 title: '0-0-0-1',
@@ -48,7 +55,8 @@ const testTree = [
                     title: '0-0-0-0-0',
                     parent: '0-0-0-1',
                     deleted: false,
-                    key: '0-0-0-0-0'
+                    key: '0-0-0-0-0',
+                    children: []
                   }
                 ]
               },
@@ -56,7 +64,8 @@ const testTree = [
                 title: '0-0-0-2',
                 parent: '0-0-1',
                 deleted: false,
-                key: '0-0-0-2'
+                key: '0-0-0-2',
+                children: []
               }
             ]
           },
@@ -64,7 +73,8 @@ const testTree = [
             title: '0-0-2',
             parent: '0-0',
             deleted: false,
-            key: '0-0-2'
+            key: '0-0-2',
+            children: []
           }
         ]
       },
@@ -78,19 +88,22 @@ const testTree = [
             title: '0-1-0',
             parent: '0-1',
             deleted: false,
-            key: '0-1-0'
+            key: '0-1-0',
+            children: []
           },
           {
             title: '0-1-1',
             parent: '0-1',
             deleted: false,
-            key: '0-1-1'
+            key: '0-1-1',
+            children: []
           },
           {
             title: '0-1-2',
             parent: '0-1',
             deleted: false,
-            key: '0-1-2'
+            key: '0-1-2',
+            children: []
           }
         ]
       },
@@ -98,7 +111,8 @@ const testTree = [
         title: 'child of root - 2',
         parent: '0',
         deleted: false,
-        key: '0-2'
+        key: '0-2',
+        children: []
       }
     ]
   }
@@ -106,16 +120,16 @@ const testTree = [
 
 describe('test functions with empty data', () => {
   it('should return empty root node', () => {
-    let rootNode = getRootNode({})
+    let rootNode = getRootItem({})
     expect(rootNode).toEqual({})
-    rootNode = getRootNode()
+    rootNode = getRootItem()
     expect(rootNode).toEqual({})
   })
 
   it('should return empty array as a nested nodes', () => {
-    let nestedNodes = getNestedNodes()
+    let nestedNodes = getChildrenItems()
     expect(nestedNodes).toEqual([])
-    nestedNodes = getNestedNodes({}, '')
+    nestedNodes = getChildrenItems({}, '')
     expect(nestedNodes).toEqual([])
   })
 
@@ -128,7 +142,7 @@ describe('test functions with empty data', () => {
 describe('should work with existing data correctly', () => {
   it('should return nested nodes for given root', () => {
     const testPartialNodes = testTree[0].children[1]
-    const partialTree = getNestedNodes(defaultDBFlatTree, testPartialNodes.key)
+    const partialTree = getChildrenItems(defaultDBFlatTree, testPartialNodes.key)
     expect(partialTree).toEqual(testPartialNodes.children)
   })
 
@@ -152,11 +166,71 @@ describe('should work with existing data correctly', () => {
         title: 'root title',
         parent: '',
         deleted: false,
-        key: '0'
+        key: '0',
+        children: []
       }
     ]
 
     const fullTree = adoptDBItemsToTree(testDBWithRoot)
     expect(fullTree).toEqual(testResultTree)
+  })
+
+  it("should find tree's item with received array", () => {
+    const treeItem = {
+      title: '0-0-0-0-0',
+      parent: '0-0-0-1',
+      deleted: false,
+      key: '0-0-0-0-0',
+      children: []
+    }
+    const foundItem = getItemByKey(testTree, treeItem.key)
+    expect(foundItem).toEqual(treeItem)
+  })
+
+  it("should return ordered tree from received random ordered items by their's keys", () => {
+    const treeItems = [
+      {
+        title: 'root title',
+        parent: '',
+        deleted: false,
+        key: '0',
+        children: [
+          {
+            title: 'child of root - 0',
+            parent: '0',
+            deleted: false,
+            key: '0-0',
+            children: [
+              {
+                title: '0-0-1',
+                parent: '0-0',
+                deleted: false,
+                key: '0-0-1',
+                children: []
+              },
+              {
+                title: '0-0-2',
+                parent: '0-0',
+                deleted: false,
+                key: '0-0-2',
+                children: []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: '0-0-0-0-0',
+        parent: '0-0-0-1',
+        deleted: false,
+        key: '0-0-0-0-0',
+        children: []
+      }
+    ]
+
+    const keys = ['0-0', '0-0-0-0-0', '0-0-2', '0', '0-0-1']
+    const emptyItems = []
+    const result = addItemsToTree(defaultDBFlatTree, emptyItems, keys)
+    expect(result).toEqual(treeItems)
   })
 })

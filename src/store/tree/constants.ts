@@ -1,12 +1,13 @@
 import { DBTreeItemList } from './types'
 
+export const rootDBKey = '0'
 /**
  * Default DB. key of each element is unique value. It used as a
  * pointer to parent element.
  * Root element has parent === ''
  */
 export const defaultDBFlatTree: DBTreeItemList = {
-  '0': {
+  [rootDBKey]: {
     title: 'root title',
     parent: '',
     deleted: false,

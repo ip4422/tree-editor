@@ -1,21 +1,38 @@
-import { TreeItem, DBTreeItemList } from './types'
+import { TreeItem, DBTreeItemList, DBTreeItem } from './types'
+import { rootDBKey } from './constants'
 
-export const getItemsById = (
-  sourceDBItems: TreeItem[],
-  idList: string[]
-): TreeItem[] => {
-  return [] as TreeItem[]
+/**
+ * Find item in tree by key
+ * @param {TreeItem[]} items - array of TreeItem to find with
+ * @param {string} key - key of searched item
+ * @returns {TreeItem | null} - link to item with received key
+ */
+export const getItemByKey = (
+  items: TreeItem[],
+  key: string
+): TreeItem | null => {
+  if (items.length) {
+    let result = null
+    for (let i = 0; result == null && i < items.length; i++) {
+      if (items[i].key === key) {
+        return items[i]
+      }
+      result = getItemByKey(items[i].children, key)
+    }
+    return result
+  }
+  return null
 }
 
 /**
  * Returns root node
- * @param {DBTreeItemList} nodes - flat tree. Only root has no parent
+ * @param {TreeItem[]} nodes - flat tree. Only root has no parent
  * @returns {TreeItem} - root node object
  */
-export const getRootNode = (nodes: DBTreeItemList): TreeItem => {
+export const getRootItem = (nodes: TreeItem[]): TreeItem => {
   for (let key in nodes) {
     if (!nodes[key].parent) {
-      return { ...nodes[key] }
+      return { ...nodes[key], children: [] as TreeItem[] }
     }
   }
   return {} as TreeItem
@@ -23,44 +40,145 @@ export const getRootNode = (nodes: DBTreeItemList): TreeItem => {
 
 /**
  * Returns tree for given root node key
- * @param {DBTreeItemList} nodes - flat tree. Only root has no parent
+ * @param {TreeItem[]} nodes - flat tree. Only root has no parent
  * @param {string} parent - root node key. It can be any node element. Tree
  * will be created from received key
  * @returns {TreeItem[]}  - result tree
  */
-export const getNestedNodes = (
-  nodes: DBTreeItemList,
+export const getChildrenItems = (
+  nodes: TreeItem[],
   parent: string
 ): TreeItem[] => {
-  const nestedNodes = [] as TreeItem[]
+  const childrenItems = [] as TreeItem[]
   for (const key in nodes) {
     if (nodes[key].parent === parent) {
-      const children = getNestedNodes(nodes, key)
-      // don't push empty children
-      let nestedNode = { ...nodes[key], ...(children.length && { children }) }
-      nestedNodes.push(nestedNode)
+      const children = getChildrenItems(nodes, nodes[key].key)
+      childrenItems.push({ ...nodes[key], ...{ children } })
     }
   }
-  return nestedNodes
+  return childrenItems
+}
+
+/**
+ * Returns tree for given flat tree with root or without root
+ * @param {TreeItem[]} nodes - flat tree. Only root has no parent
+ * @returns {TreeItem[]}  - result tree
+ */
+export const flatTreeToViewTree = (items: TreeItem[]): TreeItem[] => {
+  const treeItems = [] as TreeItem[]
+  const rootItem = getRootItem(items)
+  // check for existing root item. If we have no root, than return empty array
+  if (rootItem.key) {
+    const children = getChildrenItems(items, rootItem.key)
+    rootItem.children = children
+    treeItems.push(rootItem)
+  }
+  for (let i in items) {
+    if (!getItemByKey(treeItems, items[i].key)) {
+      const parent = getItemByKey(treeItems, items[i].parent)
+      if (parent) {
+        const children = getChildrenItems(items, items[i].parent)
+        parent.children.push(...children)
+      } else {
+        const children = getChildrenItems(items, items[i].key)
+        const item = { ...items[i], children }
+        treeItems.push(item)
+      }
+    }
+  }
+  return treeItems
+}
+
+/**
+ * Reorder flat tree
+ * @param {DBTreeItem[]} tree - flat tree to ordering
+ * @returns {DBTreeItem[]} - ordered flat tree
+ */
+export const reorderFlatTree = (
+  tree: DBTreeItem[] = [] as DBTreeItem[]
+): TreeItem[] => {
+  const orderedTree = [] as TreeItem[]
+  if (tree.length) {
+    const currentItem = { ...tree[0], children: [] as TreeItem[] }
+    orderedTree.push(currentItem)
+    // start from second item cause we already push initial item
+    for (let i = 1; i < tree.length; i++) {
+      if (tree[i].parent) {
+        // search for child in ordered list. If there is than we set current item
+        // before his child
+        let pos = orderedTree.findIndex(item => item.key === tree[i].parent)
+        if (pos >= 0) {
+          orderedTree.splice(pos + 1, 0, {
+            ...tree[i],
+            children: [] as TreeItem[]
+          })
+        } else {
+          orderedTree.push({ ...tree[i], children: [] as TreeItem[] })
+        }
+      } else {
+        orderedTree.splice(0, 0, { ...tree[i], children: [] as TreeItem[] })
+      }
+    }
+  }
+  return orderedTree
+}
+
+/**
+ * Add itemt to tree view
+ * @param {DBTreeItemList} sourceDB - source DB with whole items list
+ * @param {TreeItem[]} items - current view tree
+ * @param {string[]} keys - list of keys to add
+ *
+ */
+export const addItemsToTree = (
+  sourceDB: DBTreeItemList,
+  items: TreeItem[],
+  keys: string[]
+) => {
+  const flatTree = items.flat(Infinity)
+  for (let i = 0; i < keys.length; i++) {
+    flatTree.push({ ...sourceDB[keys[i]], children: [] as TreeItem[] })
+  }
+
+  // should ordering list to prettify results
+  const orderedTree = reorderFlatTree(flatTree)
+
+  return flatTreeToViewTree(orderedTree)
+}
+
+/**
+ * Returns tree for given root node key
+ * @param {DBTreeItemList} nodes - original DB with root
+ * @param {string} parent - root node key. It can be any node element. Tree
+ * will be created from received key
+ * @returns {TreeItem[]}  - result tree
+ */
+export const getTree = (nodes: DBTreeItemList, parent: string): TreeItem[] => {
+  const childrenItems = [] as TreeItem[]
+  for (const key in nodes) {
+    if (nodes[key].parent === parent) {
+      const children = getTree(nodes, key)
+      childrenItems.push({ ...nodes[key], ...{ children } })
+    }
+  }
+  return childrenItems
 }
 
 /**
  * Returns tree for given flat tree. Root will be finded throughout received
- * array with empty parent (null | undefined | '')
+ * array with empty parent
  * @param {DBTreeItemList} nodes - flat tree. Only root has no parent
  * @returns {TreeItem[]}  - result tree
  */
-export const adoptDBItemsToTree = (items: DBTreeItemList): TreeItem[] => {
+export const adoptDBItemsToTree = (
+  items: DBTreeItemList = {} as DBTreeItemList
+): TreeItem[] => {
   const treeItems = [] as TreeItem[]
-  const rootItem = getRootNode(items)
+  const rootItem = { ...items[rootDBKey] }
   // check for existing root item. If we have no root, than return empty array
   if (rootItem.key) {
-    const children = getNestedNodes(items, rootItem.key)
-    // don't push empty children
-    if (children.length) {
-      rootItem.children = children
-    }
-    treeItems.push(rootItem)
+    const children = getTree(items, rootItem.key)
+    treeItems.push({ ...rootItem, children })
   }
 
   return treeItems

@@ -1,23 +1,4 @@
 /**
- * Interface for using with antd Tree component
- * @typedef TreeItem
- * @type {object}
- * @property {string} title - some string value from DB
- * (title === DBTreeItem.value)
- * @property {boolean} deleted -  deleted flag
- * @property {number} parent -  ID of parent element. -1 - has no parent.
- * DB may contain only one root element with ID === -1
- * @property {string} key -  unique key value for antd Tree component
- */
-export interface TreeItem {
-  title: string
-  parent: string
-  deleted: boolean
-  key: string
-  children?: TreeItem[]
-}
-
-/**
  * Original DB item type
  * @typedef DBTreeItem
  * @type {object}
@@ -31,6 +12,15 @@ export interface DBTreeItem {
   parent: string
   deleted: boolean
   key: string
+}
+
+/**
+ * Interface for using with antd Tree component
+ * @typedef TreeItem
+ * @property {TreeItem[]} children -  children items
+ */
+export interface TreeItem extends DBTreeItem {
+  children: TreeItem[]
 }
 
 /**

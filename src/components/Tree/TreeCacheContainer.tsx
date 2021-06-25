@@ -9,7 +9,7 @@ import { reset } from '../../store'
 // }
 
 export const TreeCacheContainer = () => {
-  const items = useAppSelector(state => state.tree.items)
+  const items = useAppSelector(state => state.tree.cache)
   const [checked, setChecked] = useState([] as string[])
   const dispatch = useAppDispatch()
 
