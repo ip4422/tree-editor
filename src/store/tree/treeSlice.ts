@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import { defaultDBFlatTree } from './constants'
 import { TreeItem } from './types'
-import { adoptDBItemsToTree } from './utils'
+import { adoptDBItemsToTree, addItemsToTree } from './utils'
 export interface TreeState {
   items: TreeItem[]
   cache: TreeItem[]
@@ -18,6 +18,7 @@ const treeSlice = createSlice({
   initialState,
   reducers: {
     add: (state, action: PayloadAction<string[]>) => {
+      state.cache = addItemsToTree(defaultDBFlatTree, [], action.payload)
     },
     remove: (state, action: PayloadAction<TreeItem>) => {},
     reset: state => {

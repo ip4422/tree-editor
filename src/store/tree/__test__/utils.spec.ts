@@ -142,7 +142,10 @@ describe('test functions with empty data', () => {
 describe('should work with existing data correctly', () => {
   it('should return nested nodes for given root', () => {
     const testPartialNodes = testTree[0].children[1]
-    const partialTree = getChildrenItems(defaultDBFlatTree, testPartialNodes.key)
+    const partialTree = getChildrenItems(
+      defaultDBFlatTree,
+      testPartialNodes.key
+    )
     expect(partialTree).toEqual(testPartialNodes.children)
   })
 
@@ -196,39 +199,47 @@ describe('should work with existing data correctly', () => {
         key: '0',
         children: [
           {
-            title: 'child of root - 0',
+            title: 'child of root - 2',
             parent: '0',
             deleted: false,
-            key: '0-0',
-            children: [
-              {
-                title: '0-0-1',
-                parent: '0-0',
-                deleted: false,
-                key: '0-0-1',
-                children: []
-              },
-              {
-                title: '0-0-2',
-                parent: '0-0',
-                deleted: false,
-                key: '0-0-2',
-                children: []
-              }
-            ]
+            key: '0-2',
+            children: []
           }
         ]
       },
       {
-        title: '0-0-0-0-0',
-        parent: '0-0-0-1',
+        title: '0-0-1',
+        parent: '0-0',
         deleted: false,
-        key: '0-0-0-0-0',
+        key: '0-0-1',
+        children: [
+          {
+            title: '0-0-0-2',
+            parent: '0-0-1',
+            deleted: false,
+            key: '0-0-0-2',
+            children: []
+          },
+          {
+            title: '0-0-0-1',
+            parent: '0-0-1',
+            deleted: false,
+            key: '0-0-0-1',
+            children: []
+          }
+        ]
+      },
+      {
+        title: '0-0-2',
+        parent: '0-0',
+        deleted: false,
+        key: '0-0-2',
         children: []
       }
     ]
 
-    const keys = ['0-0', '0-0-0-0-0', '0-0-2', '0', '0-0-1']
+    const keys = ['0-0-0-2', '0-0-0-1', '0-0-2', '0-0-1', '0', '0-2']
+    // const keys = ['0-0', '0-0-0-0-0', '0-0-2', '0', '0-0-1']
     const emptyItems = []
     const result = addItemsToTree(defaultDBFlatTree, emptyItems, keys)
     expect(result).toEqual(treeItems)

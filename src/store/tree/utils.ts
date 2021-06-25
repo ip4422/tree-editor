@@ -104,8 +104,7 @@ export const reorderFlatTree = (
     // start from second item cause we already push initial item
     for (let i = 1; i < tree.length; i++) {
       if (tree[i].parent) {
-        // search for child in ordered list. If there is than we set current item
-        // before his child
+        // check for existing direct parent in ordered items
         let pos = orderedTree.findIndex(item => item.key === tree[i].parent)
         if (pos >= 0) {
           orderedTree.splice(pos + 1, 0, {
@@ -113,7 +112,17 @@ export const reorderFlatTree = (
             children: [] as TreeItem[]
           })
         } else {
-          orderedTree.push({ ...tree[i], children: [] as TreeItem[] })
+          // check for existing direct children in ordered items
+          pos = orderedTree.findIndex(item => item.parent === tree[i].key)
+          if (pos >= 0) {
+            orderedTree.splice(pos, 0, {
+              ...tree[i],
+              children: [] as TreeItem[]
+            })
+          } else {
+            // if no direct parent and children in ordered tree
+            orderedTree.push({ ...tree[i], children: [] as TreeItem[] })
+          }
         }
       } else {
         orderedTree.splice(0, 0, { ...tree[i], children: [] as TreeItem[] })
