@@ -144,7 +144,7 @@ export const addItemsToTree = (
   items: TreeItem[],
   keys: string[]
 ) => {
-  const flatTree = items.flat(Infinity)
+  const flatTree = getFlattenTree(items)
   for (let i = 0; i < keys.length; i++) {
     flatTree.push({ ...sourceDB[keys[i]], children: [] as TreeItem[] })
   }
@@ -191,4 +191,18 @@ export const adoptDBItemsToTree = (
   }
 
   return treeItems
+}
+
+/**
+ * returns flatten tree
+ * @param {TreeItem[]} tree - tree for flatting
+ * @returns {TreeItem[]} nodes - flat tree
+ */
+export const getFlattenTree = (tree: TreeItem[]): TreeItem[] => {
+  const resultFlatTree = [] as TreeItem[]
+  for (const i in tree) {
+    const children = getFlattenTree(tree[i].children)
+    resultFlatTree.push({ ...tree[i], children: [] }, ...children)
+  }
+  return resultFlatTree
 }

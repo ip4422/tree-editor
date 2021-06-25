@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Tree as AntTree, Row, Col, Button } from 'antd'
 
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
-import { add } from '../../store'
+import { addItems } from '../../store'
 
 export const TreeDBContainer = () => {
   const [selectedIdList, setSelectedIdList] = useState([])
@@ -19,7 +19,7 @@ export const TreeDBContainer = () => {
   // }
 
   const handleAdd = (): void => {
-    dispatch(add(selectedIdList))
+    dispatch(addItems(selectedIdList))
   }
 
   return (
