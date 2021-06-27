@@ -20,7 +20,9 @@ export const TreeDBContainer = () => {
   }
 
   const handleAdd = (): void => {
-    dispatch(addItemAction(selectedItem))
+    if (selectedItem.key) {
+      dispatch(addItemAction(selectedItem))
+    }
   }
 
   const getIcon = (props: any) => {

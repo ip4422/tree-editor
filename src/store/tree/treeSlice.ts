@@ -8,7 +8,8 @@ import {
   getKeys,
   deleteItem,
   alterItem,
-  addItemToTree
+  addItemToTree,
+  applyCache
 } from './utils'
 
 export interface TreeState {
@@ -21,6 +22,11 @@ const initialState: TreeState = {
   items: adoptDBItemsToTree(defaultDBFlatTree),
   cache: [] as TreeItem[],
   cacheExpandedKeys: [] as string[]
+}
+
+interface ApplyAction {
+  dbItems: TreeItem[]
+  cache: TreeItem[]
 }
 
 const treeSlice = createSlice({
@@ -37,6 +43,10 @@ const treeSlice = createSlice({
     alter: (state, action: PayloadAction<TreeItem[]>) => {
       state.cache = action.payload
     },
+    apply: (state, action: PayloadAction<ApplyAction>) => {
+      state.items = action.payload.dbItems
+      state.cache = action.payload.cache
+    },
     reset: state => {
       state.items = adoptDBItemsToTree(defaultDBFlatTree)
       state.cache = [] as TreeItem[]
@@ -48,6 +58,7 @@ const treeSlice = createSlice({
 export const { reset } = treeSlice.actions
 
 export const selectCache = (state: RootState) => state.tree.cache
+export const selectDB = (state: RootState) => state.tree.items
 
 export const addItemAction =
   (newItem: TreeItem): AppThunk =>
@@ -72,5 +83,17 @@ export const alterItemAction =
     const resultCache = alterItem(cache, item)
     dispatch(treeSlice.actions.alter(resultCache))
   }
+
+export const applyAction = (): AppThunk => (dispatch, getState) => {
+  const cache = selectCache(getState())
+  const dbItems = selectDB(getState())
+  const [resultDBItems, resultCache] = applyCache(dbItems, cache)
+  dispatch(
+    treeSlice.actions.apply({
+      dbItems: resultDBItems,
+      cache: resultCache
+    })
+  )
+}
 
 export const tree = treeSlice.reducer

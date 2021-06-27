@@ -10,6 +10,7 @@ import {
   deleteItemAction,
   alterItemAction,
   addItemAction,
+  applyAction,
   TreeItem
 } from '../../store'
 import { getItemByKey } from '../../store/tree/utils'
@@ -92,6 +93,10 @@ export const TreeCacheContainer = () => {
     onToggleAlterModal()
   }
 
+  const handleApply = () => {
+    dispatch(applyAction())
+  }
+
   return (
     <div style={{ minWidth: '350px', minHeight: '400px' }}>
       <AntTree
@@ -141,7 +146,7 @@ export const TreeCacheContainer = () => {
           </Col>
           <Col span={2} />
           <Col>
-            <Button>Apply</Button>
+            <Button onClick={handleApply}>Apply</Button>
           </Col>
           <Col>
             <Button onClick={handleReset}>Reset</Button>
