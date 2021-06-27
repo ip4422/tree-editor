@@ -40,7 +40,7 @@ export const defaultDBFlatTree: DBTreeItemList = {
   '0-0-0-1': {
     title: '0-0-0-1',
     parent: '0-0-1',
-    deleted: false,
+    deleted: true,
     key: '0-0-0-1'
   },
   '0-0-0-0-0': {

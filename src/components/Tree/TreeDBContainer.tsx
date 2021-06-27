@@ -1,25 +1,25 @@
 import React, { useState } from 'react'
 import { Tree as AntTree, Row, Col, Button } from 'antd'
+import { CloseOutlined } from '@ant-design/icons'
 
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
 import { addItems } from '../../store'
 
 export const TreeDBContainer = () => {
-  const [selectedIdList, setSelectedIdList] = useState([])
+  const [selected, setSelected] = useState([] as string[])
   const items = useAppSelector(state => state.tree.items)
   const dispatch = useAppDispatch()
 
-  const onCheck = (checkedKeysValue: any) => {
-    setSelectedIdList(checkedKeysValue.checked)
+  const onSelect = (selectedKeysValue: any, info: any) => {
+    setSelected(selectedKeysValue)
   }
 
-  // const onSelect = (selectedKeysValue: any, info: any) => {
-  //   console.log('onSelect', info)
-  //   // setSelectedKeys(selectedKeysValue);
-  // }
-
   const handleAdd = (): void => {
-    dispatch(addItems(selectedIdList))
+    dispatch(addItems(selected))
+  }
+
+  const getIcon = (props: any) => {
+    return props.data.deleted && <CloseOutlined style={{ color: 'red' }} />
   }
 
   return (
@@ -30,16 +30,12 @@ export const TreeDBContainer = () => {
         </Col>
         <Col>
           <AntTree
-            checkable
             defaultExpandAll
             checkStrictly
-            // onExpand={onExpand}
-            // expandedKeys={expandedKeys}
-            // autoExpandParent={autoExpandParent}
-            onCheck={onCheck}
-            checkedKeys={selectedIdList}
-            // onSelect={onSelect}
-            // selectedKeys={selectedKeys}
+            showIcon
+            icon={getIcon}
+            onSelect={onSelect}
+            selectedKeys={selected}
             treeData={items}
           />
         </Col>

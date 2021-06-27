@@ -1,56 +1,121 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Tree as AntTree, Row, Col, Button } from 'antd'
+import { DeleteFilled } from '@ant-design/icons'
 
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
-import { reset } from '../../store'
+import { usePopupState } from '../../utils/usePopupState'
 
-// type CheckedKeysValue = {
-//   checked?: string[]
-// }
+import { reset, deleteItem, TreeItem } from '../../store'
+import { ItemModal } from './ItemModal'
 
 export const TreeCacheContainer = () => {
   const items = useAppSelector(state => state.tree.cache)
-  const [checked, setChecked] = useState([] as string[])
+  const expanded = useAppSelector(state => state.tree.cacheExpandedKeys)
+  const [selectedItem, setSelectedItem] = useState({} as TreeItem)
+  const [newItem, setNewItem] = useState({} as TreeItem)
+  // TODO: remove this hook cause is redundant
+  const [isOpenAddModal, onToggleAddModal] = usePopupState()
+  const [isOpenAlterModal, onToggleAlterModal] = usePopupState()
+
   const dispatch = useAppDispatch()
 
-  const onCheck = (checkedKeysValue: any) => {
-    setChecked(checkedKeysValue.checked)
-  }
+  // calculate temporary unique key for new item
+  useEffect(() => {
+    const item = { ...selectedItem }
+    item.key = `${selectedItem.key}-0-${
+      selectedItem?.children ? selectedItem?.children.length : 0
+    }`
+    item.title = item.key
+    setNewItem(item)
+  }, [selectedItem])
 
+  // store selected item for further editing or create new item
   const onSelect = (selectedKeysValue: any, info: any) => {
-    console.log('onSelect', info)
-    // setSelectedKeys(selectedKeysValue);
+    if (info.selectedNodes.length) {
+      setSelectedItem(info.selectedNodes[0])
+    } else {
+      setSelectedItem({} as TreeItem)
+    }
   }
 
+  // reset to default state
   const handleReset = () => {
     dispatch(reset())
+  }
+
+  // display icon for deleted items
+  const getIcon = (props: any) => {
+    return props.data.deleted && <DeleteFilled style={{ color: 'red' }} />
+  }
+
+  // TODO: implement delete item with it's children
+  // mark item as deleted
+  const handleDelete = () => {
+    if (selectedItem.key) {
+      dispatch(deleteItem(selectedItem))
+    }
+  }
+
+  // TODO: implement store new item
+  // create new item for selected parent item stored in "selectedItem"
+  const handleNewItem = (item: TreeItem) => {
+    console.log(`item`, item)
+    onToggleAddModal()
+  }
+
+  // TODO: implement store altered item
+  // create new item for selected parent item stored in "selectedItem"
+  const handleAlterItem = (item: TreeItem) => {
+    console.log(`item`, item)
+    onToggleAlterModal()
   }
 
   return (
     <div style={{ minWidth: '350px', minHeight: '400px' }}>
       <AntTree
-        checkable
-        defaultExpandAll
-        checkStrictly
-        // onExpand={onExpand}
-        // expandedKeys={expandedKeys}
-        // autoExpandParent={autoExpandParent}
-        onCheck={onCheck}
-        checkedKeys={checked}
+        showIcon
+        icon={getIcon}
+        expandedKeys={expanded}
         onSelect={onSelect}
-        // selectedKeys={selectedKeys}
+        selectedKeys={[selectedItem.key]}
         treeData={items}
       />
       <div style={{ marginTop: '20px' }}>
         <Row gutter={8} wrap={false}>
           <Col>
-            <Button>+</Button>
+            <ItemModal
+              visible={isOpenAddModal}
+              title={`Adding new item for parent: ${selectedItem.title}`}
+              item={newItem}
+              onOk={handleNewItem}
+              onCancel={onToggleAddModal}
+            />
+            <Button
+              disabled={!selectedItem.key || selectedItem.deleted}
+              onClick={onToggleAddModal}
+            >
+              +
+            </Button>
           </Col>
           <Col>
-            <Button>-</Button>
+            <Button disabled={!selectedItem.key} onClick={handleDelete}>
+              -
+            </Button>
           </Col>
           <Col>
-            <Button>a</Button>
+            <ItemModal
+              visible={isOpenAlterModal}
+              title={`Altering item: ${selectedItem.title}`}
+              item={selectedItem}
+              onOk={handleAlterItem}
+              onCancel={onToggleAlterModal}
+            />
+            <Button
+              disabled={!selectedItem.key || selectedItem.deleted}
+              onClick={onToggleAlterModal}
+            >
+              a
+            </Button>
           </Col>
           <Col span={2} />
           <Col>

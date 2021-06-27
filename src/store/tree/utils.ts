@@ -94,6 +94,8 @@ export const flatTreeToViewTree = (items: TreeItem[]): TreeItem[] => {
  * @param {DBTreeItem[]} tree - flat tree to ordering
  * @returns {DBTreeItem[]} - ordered flat tree
  */
+// TODO: refactoring for keep current ordering when add children
+// now it push before other children and ordering changing
 export const reorderFlatTree = (
   tree: DBTreeItem[] = [] as DBTreeItem[]
 ): TreeItem[] => {
@@ -133,7 +135,7 @@ export const reorderFlatTree = (
 }
 
 /**
- * Add itemt to tree view
+ * Add items to tree view
  * @param {DBTreeItemList} sourceDB - source DB with whole items list
  * @param {TreeItem[]} items - current view tree
  * @param {string[]} keys - list of keys to add
@@ -146,13 +148,33 @@ export const addItemsToTree = (
 ) => {
   const flatTree = getFlattenTree(items)
   for (let i = 0; i < keys.length; i++) {
-    flatTree.push({ ...sourceDB[keys[i]], children: [] as TreeItem[] })
+    if (!flatTree.find(item => item.key === keys[i])) {
+      flatTree.push({ ...sourceDB[keys[i]], children: [] as TreeItem[] })
+    }
   }
 
-  // should ordering list to prettify results
+  // should ordering list to build correctly tree
   const orderedTree = reorderFlatTree(flatTree)
 
   return flatTreeToViewTree(orderedTree)
+}
+
+/**
+ * Mark item as "deleted"
+ * @param {TreeItem[]} cache - current view tree
+ * @param {TreeItem[]} item - item to be deleted
+ *
+ */
+export const deleteItemFromTree = (
+  cache: TreeItem[],
+  itemToDelete: TreeItem
+) => {
+  const flatTree = getFlattenTree(cache)
+  const index = flatTree.findIndex(item => item.key === itemToDelete.key)
+  if (index !== -1) {
+    flatTree[index].deleted = !flatTree[index].deleted
+  }
+  return flatTreeToViewTree(flatTree)
 }
 
 /**
@@ -205,4 +227,16 @@ export const getFlattenTree = (tree: TreeItem[]): TreeItem[] => {
     resultFlatTree.push({ ...tree[i], children: [] }, ...children)
   }
   return resultFlatTree
+}
+
+/**
+ * get all keys array
+ */
+export const getKeys = (tree: TreeItem[]): string[] => {
+  const keys = [] as string[]
+  const flatTree = getFlattenTree(tree)
+  for (const i in flatTree) {
+    keys.push(flatTree[i].key)
+  }
+  return keys
 }
