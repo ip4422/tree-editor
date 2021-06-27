@@ -5,7 +5,7 @@ import { DeleteFilled } from '@ant-design/icons'
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
 import { usePopupState } from '../../utils/usePopupState'
 
-import { reset, deleteItem, TreeItem } from '../../store'
+import { reset, deleteItemAction, alterItemAction, TreeItem } from '../../store'
 import { ItemModal } from './ItemModal'
 
 export const TreeCacheContainer = () => {
@@ -52,7 +52,7 @@ export const TreeCacheContainer = () => {
   // mark item as deleted
   const handleDelete = () => {
     if (selectedItem.key) {
-      dispatch(deleteItem(selectedItem))
+      dispatch(deleteItemAction(selectedItem))
     }
   }
 
@@ -63,10 +63,11 @@ export const TreeCacheContainer = () => {
     onToggleAddModal()
   }
 
-  // TODO: implement store altered item
   // create new item for selected parent item stored in "selectedItem"
   const handleAlterItem = (item: TreeItem) => {
-    console.log(`item`, item)
+    if (item.key) {
+      dispatch(alterItemAction(item))
+    }
     onToggleAlterModal()
   }
 

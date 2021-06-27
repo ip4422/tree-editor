@@ -7,7 +7,8 @@ import {
   adoptDBItemsToTree,
   addItemsToTree,
   getKeys,
-  deleteItemFromTree
+  deleteItemFromTree,
+  alterItem
 } from './utils'
 
 export interface TreeState {
@@ -33,6 +34,9 @@ const treeSlice = createSlice({
     remove: (state, action: PayloadAction<TreeItem[]>) => {
       state.cache = action.payload
     },
+    alter: (state, action: PayloadAction<TreeItem[]>) => {
+      state.cache = action.payload
+    },
     reset: state => {
       state.items = adoptDBItemsToTree(defaultDBFlatTree)
       state.cache = [] as TreeItem[]
@@ -53,12 +57,20 @@ export const addItems =
     dispatch(treeSlice.actions.add(resultCache))
   }
 
-export const deleteItem =
+export const deleteItemAction =
   (item: TreeItem): AppThunk =>
   (dispatch, getState) => {
     const cache = selectCache(getState())
     const resultCache = deleteItemFromTree(cache, item)
     dispatch(treeSlice.actions.remove(resultCache))
+  }
+
+export const alterItemAction =
+  (item: TreeItem): AppThunk =>
+  (dispatch, getState) => {
+    const cache = selectCache(getState())
+    const resultCache = alterItem(cache, item)
+    dispatch(treeSlice.actions.alter(resultCache))
   }
 
 export const tree = treeSlice.reducer

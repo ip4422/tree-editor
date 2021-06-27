@@ -178,6 +178,21 @@ export const deleteItemFromTree = (
 }
 
 /**
+ * Alter item's title
+ * @param {TreeItem[]} cache - current view tree
+ * @param {TreeItem[]} item - item to be altered
+ *
+ */
+export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {
+  const flatTree = getFlattenTree(cache)
+  const index = flatTree.findIndex(item => item.key === itemToAltered.key)
+  if (index !== -1) {
+    flatTree[index].title = itemToAltered.title
+  }
+  return flatTreeToViewTree(flatTree)
+}
+
+/**
  * Returns tree for given root node key
  * @param {DBTreeItemList} nodes - original DB with root
  * @param {string} parent - root node key. It can be any node element. Tree
