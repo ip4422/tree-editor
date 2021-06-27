@@ -5,10 +5,10 @@ import { defaultDBFlatTree } from './constants'
 import { TreeItem } from './types'
 import {
   adoptDBItemsToTree,
-  addItemsToTree,
   getKeys,
   deleteItem,
-  alterItem
+  alterItem,
+  addItemToTree
 } from './utils'
 
 export interface TreeState {
@@ -49,11 +49,11 @@ export const { reset } = treeSlice.actions
 
 export const selectCache = (state: RootState) => state.tree.cache
 
-export const addItems =
-  (items: string[]): AppThunk =>
+export const addItemAction =
+  (newItem: TreeItem): AppThunk =>
   (dispatch, getState) => {
     const cache = selectCache(getState())
-    const resultCache = addItemsToTree(defaultDBFlatTree, cache, items)
+    const resultCache = addItemToTree(cache, newItem)
     dispatch(treeSlice.actions.add(resultCache))
   }
 

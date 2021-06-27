@@ -3,7 +3,6 @@ import {
   getRootItem,
   getChildrenItems,
   getItemByKey,
-  addItemsToTree,
   adoptDBItemsToTree,
   getFlattenTree
 } from '../utils'
@@ -191,63 +190,63 @@ describe('should work with existing data correctly', () => {
     expect(foundItem).toEqual(treeItem)
   })
 
-  it("should return ordered tree from received random ordered items by their's keys", () => {
-    const treeItems = [
-      {
-        title: 'root title',
-        parent: '',
-        deleted: false,
-        key: '0',
-        children: [
-          {
-            title: 'child of root - 2',
-            parent: '0',
-            deleted: false,
-            key: '0-2',
-            children: []
-          }
-        ]
-      },
-      {
-        title: '0-0-1',
-        parent: '0-0',
-        deleted: false,
-        key: '0-0-1',
-        children: [
-          {
-            title: '0-0-0-2',
-            parent: '0-0-1',
-            deleted: false,
-            key: '0-0-0-2',
-            children: []
-          },
-          {
-            title: '0-0-0-1',
-            parent: '0-0-1',
-            deleted: false,
-            key: '0-0-0-1',
-            children: []
-          }
-        ]
-      },
-      {
-        title: '0-0-2',
-        parent: '0-0',
-        deleted: false,
-        key: '0-0-2',
-        children: []
-      }
-    ]
+  // it("should return ordered tree from received random ordered items by their's keys", () => {
+  //   const treeItems = [
+  //     {
+  //       title: 'root title',
+  //       parent: '',
+  //       deleted: false,
+  //       key: '0',
+  //       children: [
+  //         {
+  //           title: 'child of root - 2',
+  //           parent: '0',
+  //           deleted: false,
+  //           key: '0-2',
+  //           children: []
+  //         }
+  //       ]
+  //     },
+  //     {
+  //       title: '0-0-1',
+  //       parent: '0-0',
+  //       deleted: false,
+  //       key: '0-0-1',
+  //       children: [
+  //         {
+  //           title: '0-0-0-2',
+  //           parent: '0-0-1',
+  //           deleted: false,
+  //           key: '0-0-0-2',
+  //           children: []
+  //         },
+  //         {
+  //           title: '0-0-0-1',
+  //           parent: '0-0-1',
+  //           deleted: false,
+  //           key: '0-0-0-1',
+  //           children: []
+  //         }
+  //       ]
+  //     },
+  //     {
+  //       title: '0-0-2',
+  //       parent: '0-0',
+  //       deleted: false,
+  //       key: '0-0-2',
+  //       children: []
+  //     }
+  //   ]
 
-    const keys = ['0-0-0-2', '0-0-0-1', '0-0-2', '0-0-1', '0', '0-2']
-    // 1
-    // const keys = ['0-0-2', '0-0-0-1', '0-0-0-2', '0-0-0-0-0']
-    // 2
-    // const keys = ['0-0-2', '0-0-0-1', '0-0-0-2', '0-0-0-0-0', '0-0']
-    const emptyItems = []
-    const result = addItemsToTree(defaultDBFlatTree, emptyItems, keys)
-    expect(result).toEqual(treeItems)
-  })
+  //   const keys = ['0-0-0-2', '0-0-0-1', '0-0-2', '0-0-1', '0', '0-2']
+  //   // 1
+  //   // const keys = ['0-0-2', '0-0-0-1', '0-0-0-2', '0-0-0-0-0']
+  //   // 2
+  //   // const keys = ['0-0-2', '0-0-0-1', '0-0-0-2', '0-0-0-0-0', '0-0']
+  //   const emptyItems = []
+  //   const result = addItemsToTree(defaultDBFlatTree, emptyItems, keys)
+  //   expect(result).toEqual(treeItems)
+  // })
 
   it('should return flatten array', () => {
     const tree = [

@@ -5,7 +5,13 @@ import { DeleteFilled } from '@ant-design/icons'
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
 import { usePopupState } from '../../utils/usePopupState'
 
-import { reset, deleteItemAction, alterItemAction, TreeItem } from '../../store'
+import {
+  reset,
+  deleteItemAction,
+  alterItemAction,
+  addItemAction,
+  TreeItem
+} from '../../store'
 import { getItemByKey } from '../../store/tree/utils'
 import { ItemModal } from './ItemModal'
 
@@ -19,16 +25,6 @@ export const TreeCacheContainer = () => {
 
   const dispatch = useAppDispatch()
 
-  // calculate temporary unique key for new item
-  useEffect(() => {
-    const item = { ...selectedItem }
-    item.key = `${selectedItem.key}-0-${
-      selectedItem?.children ? selectedItem?.children.length : 0
-    }`
-    item.title = item.key
-    setNewItem(item)
-  }, [selectedItem])
-
   // we need refresh actions accessible when make delete on item
   useEffect(() => {
     if (selectedItem.key) {
@@ -37,6 +33,22 @@ export const TreeCacheContainer = () => {
         ...(freshItem || ({} as TreeItem)),
         children: [] as TreeItem[]
       })
+      if (freshItem) {
+        // calculate temporary unique key for new item
+        const key = `${freshItem.key}-0-${
+          freshItem?.children ? freshItem?.children.length : 0
+        }`
+        const item = {
+          key,
+          title: key,
+          parent: freshItem.key,
+          deleted: false,
+          children: [] as TreeItem[]
+        } as TreeItem
+        setNewItem(item)
+      }
+    } else {
+      setNewItem({} as TreeItem)
     }
   }, [items, selectedItem.key])
 
@@ -59,7 +71,6 @@ export const TreeCacheContainer = () => {
     return props.data.deleted && <DeleteFilled style={{ color: 'red' }} />
   }
 
-  // TODO: implement delete item with it's children
   // mark item as deleted
   const handleDelete = () => {
     if (selectedItem.key) {
@@ -67,10 +78,9 @@ export const TreeCacheContainer = () => {
     }
   }
 
-  // TODO: implement store new item
   // create new item for selected parent item stored in "selectedItem"
   const handleNewItem = (item: TreeItem) => {
-    console.log(`item`, item)
+    dispatch(addItemAction(item))
     onToggleAddModal()
   }
 

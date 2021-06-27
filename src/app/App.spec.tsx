@@ -5,11 +5,13 @@ import { store } from './store'
 import { App } from './App'
 
 test('renders learn react link', () => {
-  const { getByText } = render(
+  render(
     <Provider store={store}>
       <App />
     </Provider>
   )
+  // const inputElement = screen.getByText("Header")
+  // expect(inputElement).toBeInTheDocument()
 
-  expect(getByText(/learn/i)).toBeInTheDocument()
+  // expect(screen.getByText("Header")).toBeInTheDocument()
 })

@@ -1,25 +1,30 @@
 import React, { useState } from 'react'
 import { Tree as AntTree, Row, Col, Button } from 'antd'
-import { CloseOutlined } from '@ant-design/icons'
+import { DeleteFilled } from '@ant-design/icons'
 
 import { useAppSelector, useAppDispatch } from '../../utils/hooks'
-import { addItems } from '../../store'
+import { addItemAction, TreeItem } from '../../store'
 
 export const TreeDBContainer = () => {
-  const [selected, setSelected] = useState([] as string[])
+  const [selectedItem, setSelectedItem] = useState({} as TreeItem)
   const items = useAppSelector(state => state.tree.items)
   const dispatch = useAppDispatch()
 
+  // store selected item for further editing or create new item
   const onSelect = (selectedKeysValue: any, info: any) => {
-    setSelected(selectedKeysValue)
+    if (info.selectedNodes.length) {
+      setSelectedItem({ ...info.selectedNodes[0], children: [] as TreeItem[] })
+    } else {
+      setSelectedItem({} as TreeItem)
+    }
   }
 
   const handleAdd = (): void => {
-    dispatch(addItems(selected))
+    dispatch(addItemAction(selectedItem))
   }
 
   const getIcon = (props: any) => {
-    return props.data.deleted && <CloseOutlined style={{ color: 'red' }} />
+    return props.data.deleted && <DeleteFilled style={{ color: 'red' }} />
   }
 
   return (
@@ -35,7 +40,7 @@ export const TreeDBContainer = () => {
             showIcon
             icon={getIcon}
             onSelect={onSelect}
-            selectedKeys={selected}
+            selectedKeys={[selectedItem.key]}
             treeData={items}
           />
         </Col>

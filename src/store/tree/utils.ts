@@ -136,31 +136,6 @@ export const reorderFlatTree = (
 }
 
 /**
- * Add items to tree view
- * @param {DBTreeItemList} sourceDB - source DB with whole items list
- * @param {TreeItem[]} items - current view tree
- * @param {string[]} keys - list of keys to add
- *
- */
-export const addItemsToTree = (
-  sourceDB: DBTreeItemList,
-  items: TreeItem[],
-  keys: string[]
-) => {
-  const flatTree = getFlattenTree(items)
-  for (let i = 0; i < keys.length; i++) {
-    if (!flatTree.find(item => item.key === keys[i])) {
-      flatTree.push({ ...sourceDB[keys[i]], children: [] as TreeItem[] })
-    }
-  }
-
-  // should ordering list to build correctly tree
-  const orderedTree = reorderFlatTree(flatTree)
-
-  return flatTreeToViewTree(orderedTree)
-}
-
-/**
  * Mark item as "deleted". Preparing array for changing and call
  * recursive delete function on prepared array
  * @param {TreeItem[]} cache - current view tree
@@ -206,6 +181,26 @@ export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {
     flatTree[index].title = itemToAltered.title
   }
   return flatTreeToViewTree(flatTree)
+}
+
+/**
+ * Add item to tree
+ * @param {TreeItem[]} cache - current view tree
+ * @param {TreeItem} item - item to be added
+ * @returns {TreeItem[]} - result tree with new item
+ */
+export const addItemToTree = (tree: TreeItem[], newItem: TreeItem) => {
+  if (!getItemByKey(tree, newItem.key)) {
+    const cacheTree = cloneDeep(tree)
+    const parent = getItemByKey(cacheTree, newItem.parent)
+    if (parent) {
+      parent.children.push(newItem)
+    } else {
+      cacheTree.push(newItem)
+    }
+    return cacheTree
+  }
+  return tree
 }
 
 /**
@@ -261,7 +256,7 @@ export const getFlattenTree = (tree: TreeItem[]): TreeItem[] => {
 }
 
 /**
- * get all keys array
+ * get all keys array from tree
  */
 export const getKeys = (tree: TreeItem[]): string[] => {
   const keys = [] as string[]
