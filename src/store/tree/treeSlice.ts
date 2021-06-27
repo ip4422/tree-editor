@@ -7,7 +7,7 @@ import {
   adoptDBItemsToTree,
   addItemsToTree,
   getKeys,
-  deleteItemFromTree,
+  deleteItem,
   alterItem
 } from './utils'
 
@@ -61,7 +61,7 @@ export const deleteItemAction =
   (item: TreeItem): AppThunk =>
   (dispatch, getState) => {
     const cache = selectCache(getState())
-    const resultCache = deleteItemFromTree(cache, item)
+    const resultCache = deleteItem(cache, item)
     dispatch(treeSlice.actions.remove(resultCache))
   }
 

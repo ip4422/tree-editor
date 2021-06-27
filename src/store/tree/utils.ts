@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash'
 import { TreeItem, DBTreeItemList, DBTreeItem } from './types'
 import { rootDBKey } from './constants'
 
@@ -160,27 +161,42 @@ export const addItemsToTree = (
 }
 
 /**
- * Mark item as "deleted"
+ * Mark item as "deleted". Preparing array for changing and call
+ * recursive delete function on prepared array
  * @param {TreeItem[]} cache - current view tree
- * @param {TreeItem[]} item - item to be deleted
+ * @param {TreeItem} item - item to be deleted
+ *
+ */
+export const deleteItem = (cache: TreeItem[], itemToDelete: TreeItem) => {
+  const cacheTree = cloneDeep(cache)
+  deleteItemFromTree(cacheTree, itemToDelete)
+  return cacheTree
+}
+
+/**
+ * Mark item as "deleted" recursively from entire tree
+ * @param {TreeItem[]} cache - current view tree
+ * @param {TreeItem} item - item to be deleted
  *
  */
 export const deleteItemFromTree = (
-  cache: TreeItem[],
+  tree: TreeItem[],
   itemToDelete: TreeItem
 ) => {
-  const flatTree = getFlattenTree(cache)
-  const index = flatTree.findIndex(item => item.key === itemToDelete.key)
-  if (index !== -1) {
-    flatTree[index].deleted = !flatTree[index].deleted
+  const startItem = getItemByKey(tree, itemToDelete.key)
+  if (startItem) {
+    // delete item and all his children
+    startItem.deleted = !startItem.deleted
+    for (let i = 0; i < startItem.children.length; i++) {
+      deleteItemFromTree(startItem.children, startItem.children[i])
+    }
   }
-  return flatTreeToViewTree(flatTree)
 }
 
 /**
  * Alter item's title
  * @param {TreeItem[]} cache - current view tree
- * @param {TreeItem[]} item - item to be altered
+ * @param {TreeItem} item - item to be altered
  *
  */
 export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {

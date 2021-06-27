@@ -6,14 +6,14 @@ import { useAppSelector, useAppDispatch } from '../../utils/hooks'
 import { usePopupState } from '../../utils/usePopupState'
 
 import { reset, deleteItemAction, alterItemAction, TreeItem } from '../../store'
+import { getItemByKey } from '../../store/tree/utils'
 import { ItemModal } from './ItemModal'
 
 export const TreeCacheContainer = () => {
-  const items = useAppSelector(state => state.tree.cache)
+  const items = useAppSelector(state => state.tree.cache || ([] as TreeItem[]))
   const expanded = useAppSelector(state => state.tree.cacheExpandedKeys)
   const [selectedItem, setSelectedItem] = useState({} as TreeItem)
   const [newItem, setNewItem] = useState({} as TreeItem)
-  // TODO: remove this hook cause is redundant
   const [isOpenAddModal, onToggleAddModal] = usePopupState()
   const [isOpenAlterModal, onToggleAlterModal] = usePopupState()
 
@@ -28,6 +28,17 @@ export const TreeCacheContainer = () => {
     item.title = item.key
     setNewItem(item)
   }, [selectedItem])
+
+  // we need refresh actions accessible when make delete on item
+  useEffect(() => {
+    if (selectedItem.key) {
+      const freshItem = getItemByKey(items, selectedItem.key)
+      setSelectedItem({
+        ...(freshItem || ({} as TreeItem)),
+        children: [] as TreeItem[]
+      })
+    }
+  }, [items, selectedItem.key])
 
   // store selected item for further editing or create new item
   const onSelect = (selectedKeysValue: any, info: any) => {
