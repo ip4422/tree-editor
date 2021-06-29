@@ -1,9 +1,15 @@
 import { defaultDBFlatTree } from '../constants'
 import {
   getItemByKey,
+  moveToParentByStep,
+  reorderTree,
+  deleteItem,
+  markItemAsDeleted,
+  markFlatTreeItemAsDeleted,
+  alterItem,
+  addItemToTree,
   adoptDBItemsToTree,
-  getFlatTreeItemsArray,
-  reorderTree
+  getFlatTreeItemsArray
 } from '../utils'
 
 /**
@@ -122,11 +128,48 @@ describe('test functions with empty data', () => {
     let tree = adoptDBItemsToTree()
     expect(tree).toEqual([])
   })
+
   it('getItemByKey. Should return null as a founded item', () => {
     let tree = getItemByKey()
     expect(tree).toBe(null)
   })
-  
+
+  it('moveToParentByStep. Should return null as a result moved item', () => {
+    let tree = moveToParentByStep()
+    expect(tree).toBe(null)
+  })
+
+  it('reorderTree. Should return [] as a result ordering without data', () => {
+    let tree = reorderTree()
+    expect(tree).toEqual([])
+  })
+
+  it('deleteItem. Should return [] as a result ordering without data', () => {
+    let tree = deleteItem()
+    expect(tree).toEqual([])
+  })
+
+  it('markItemAsDeleted. Should not to throw an error', () => {
+    expect(() => {
+      markItemAsDeleted()
+    }).not.toThrow()
+  })
+
+  it('markFlatTreeItemAsDeleted. Should not to throw an error', () => {
+    expect(() => {
+      markFlatTreeItemAsDeleted()
+    }).not.toThrow()
+  })
+
+  it('alterItem. Should return [] as a result altering item without data', () => {
+    let tree = alterItem()
+    expect(tree).toEqual([])
+  })
+
+  it('addItemToTree. Should return [] with empty children as a result altering item without data', () => {
+    let tree = addItemToTree()
+    expect(tree).toEqual([{ children: [] }])
+  })
 })
 
 describe('should work with existing data correctly', () => {

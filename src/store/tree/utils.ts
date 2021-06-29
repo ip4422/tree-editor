@@ -9,7 +9,7 @@ import { rootDBKey, maxIterationCount } from './constants'
  * @returns {TreeItem | null} - link to item with received key
  */
 export const getItemByKey = (
-  items: TreeItem[] = [] as TreeItem[],
+  items: TreeItem[] = [],
   key: string
 ): TreeItem | null => {
   if (items.length) {
@@ -34,7 +34,7 @@ export const getItemByKey = (
  * @param {TreeItem[]} items - array of TreeItem to move item to his parent
  * @returns {TreeItem | null} - item wich was moved to parent
  */
-const moveToParentByStep = (items: TreeItem[]): TreeItem | null => {
+export const moveToParentByStep = (items: TreeItem[] = []): TreeItem | null => {
   let result = null
   if (items.length) {
     for (let i = 0; result == null && i < items.length; i++) {
@@ -78,7 +78,10 @@ export const reorderTree = (tree: TreeItem[]): TreeItem[] => {
  * @param {TreeItem} item - item to be deleted
  *
  */
-export const deleteItem = (cache: TreeItem[], itemToDelete: TreeItem) => {
+export const deleteItem = (
+  cache: TreeItem[] = [],
+  itemToDelete: TreeItem = {} as TreeItem
+) => {
   const cacheTree = cloneDeep(cache)
   markItemAsDeleted(cacheTree, itemToDelete)
   return cacheTree
@@ -90,7 +93,10 @@ export const deleteItem = (cache: TreeItem[], itemToDelete: TreeItem) => {
  * @param {TreeItem} item - item to be deleted
  *
  */
-export const markItemAsDeleted = (tree: TreeItem[], itemToDelete: TreeItem) => {
+export const markItemAsDeleted = (
+  tree: TreeItem[],
+  itemToDelete: TreeItem = {} as TreeItem
+) => {
   const startItem = getItemByKey(tree, itemToDelete.key)
   if (startItem) {
     // delete item and all his children
@@ -106,9 +112,9 @@ export const markItemAsDeleted = (tree: TreeItem[], itemToDelete: TreeItem) => {
  * @param {TreeItem[]} items - items array where we should mark item deleted
  * @param {TreeItem} item - item to be deleted
  */
-const markFlatTreeItemAsDeleted = (
-  items: TreeItem[],
-  itemToDelete: TreeItem
+export const markFlatTreeItemAsDeleted = (
+  items: TreeItem[] = [],
+  itemToDelete: TreeItem = {} as TreeItem
 ) => {
   // first step delete item itself
   const pos = items.findIndex(item => item.key === itemToDelete.key)
@@ -129,7 +135,10 @@ const markFlatTreeItemAsDeleted = (
  * @param {TreeItem} item - item to be altered
  * @returns {TreeItem[]} - returns new cache with altered item title
  */
-export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {
+export const alterItem = (
+  cache: TreeItem[] = [],
+  itemToAltered: TreeItem = {} as TreeItem
+) => {
   const resultCache = cloneDeep(cache)
   const alterItem = getItemByKey(resultCache, itemToAltered.key)
   if (alterItem) {
@@ -145,7 +154,7 @@ export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {
  * @returns {TreeItem[]} - result tree with new item
  */
 export const addItemToTree = (
-  tree: TreeItem[],
+  tree: TreeItem[] = [] as TreeItem[],
   newItem: TreeItem
 ): TreeItem[] => {
   const flatTree = getFlatTreeItemsArray(tree)
@@ -165,7 +174,7 @@ export const addItemToTree = (
 export const getFlatTreeItemsArray = (tree: TreeItem[]): TreeItem[] => {
   const resultFlatTree = [] as TreeItem[]
   for (const i in tree) {
-    const childs = getFlatTreeItemsArray(tree[i].children)
+    const childs = getFlatTreeItemsArray(tree[i]?.children)
     resultFlatTree.push({ ...tree[i], children: [] }, ...childs)
   }
   return resultFlatTree
