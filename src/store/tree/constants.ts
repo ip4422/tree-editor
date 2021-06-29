@@ -1,6 +1,8 @@
 import { DBTreeItemList } from './types'
 
 export const rootDBKey = '0'
+
+export const maxIterationCount = 1000
 /**
  * Default DB. key of each element is unique value. It used as a
  * pointer to parent element.

@@ -5,7 +5,7 @@ import { defaultDBFlatTree } from './constants'
 import { TreeItem } from './types'
 import {
   adoptDBItemsToTree,
-  getKeys,
+  getKeysFromFlatTree,
   deleteItem,
   alterItem,
   addItemToTree,
@@ -35,7 +35,7 @@ const treeSlice = createSlice({
   reducers: {
     add: (state, action: PayloadAction<TreeItem[]>) => {
       state.cache = action.payload
-      state.cacheExpandedKeys = getKeys(action.payload)
+      state.cacheExpandedKeys = getKeysFromFlatTree(action.payload)
     },
     remove: (state, action: PayloadAction<TreeItem[]>) => {
       state.cache = action.payload

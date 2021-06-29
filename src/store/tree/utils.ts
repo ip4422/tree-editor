@@ -1,6 +1,6 @@
 import { cloneDeep } from 'lodash'
 import { TreeItem, DBTreeItemList, DBTreeItem } from './types'
-import { rootDBKey } from './constants'
+import { rootDBKey, maxIterationCount } from './constants'
 
 /**
  * Find item in tree by key
@@ -9,7 +9,7 @@ import { rootDBKey } from './constants'
  * @returns {TreeItem | null} - link to item with received key
  */
 export const getItemByKey = (
-  items: TreeItem[],
+  items: TreeItem[] = [] as TreeItem[],
   key: string
 ): TreeItem | null => {
   if (items.length) {
@@ -26,161 +26,49 @@ export const getItemByKey = (
 }
 
 /**
- * Find child item by his parent key and delete it from cache than return it
- * @param {TreeItem[]} items - array of TreeItem to find with
- * @param {string} key - key of searched item
- * @returns {TreeItem | null} - link to item with received key
+ * Check for each item for child existing. If child exists than go to next
+ * loop. If there ar not child than finding parent. If parent found than we
+ * extract current item from array and put to parent. If parent was not
+ * finded too, than go to next loop.
+ * If No child and no parent for each element mean that we have ordered tree
+ * @param {TreeItem[]} items - array of TreeItem to move item to his parent
+ * @returns {TreeItem | null} - item wich was moved to parent
  */
-// TODO: probably remove
-export const extractChildByKey = (
-  items: TreeItem[],
-  key: string
-): TreeItem | null => {
+const moveToParentByStep = (items: TreeItem[]): TreeItem | null => {
+  let result = null
   if (items.length) {
-    let result = null
     for (let i = 0; result == null && i < items.length; i++) {
-      if (items[i].parent === key) {
-        const result = items[i]
-        items.splice(i, 1)
-        return result
-      }
-      result = getItemByKey(items[i].children, key)
-    }
-    return result
-  }
-  return null
-}
-
-/**
- * Returns root node
- * @param {TreeItem[]} nodes - flat tree. Only root has no parent
- * @returns {TreeItem} - root node object
- */
-// TODO: probably remove after refactoring alterItem
-export const getRootItem = (nodes: TreeItem[]): TreeItem => {
-  for (let key in nodes) {
-    if (!nodes[key].parent) {
-      return { ...nodes[key], children: [] as TreeItem[] }
-    }
-  }
-  return {} as TreeItem
-}
-
-/**
- * Returns tree for given root node key
- * @param {TreeItem[]} nodes - flat tree. Only root has no parent
- * @param {string} parent - root node key. It can be any node element. Tree
- * will be created from received key
- * @returns {TreeItem[]}  - result tree
- */
-export const getChildrenItems = (
-  nodes: TreeItem[],
-  parent: string
-): TreeItem[] => {
-  const childrenItems = [] as TreeItem[]
-  for (const key in nodes) {
-    if (nodes[key].parent === parent) {
-      const children = getChildrenItems(nodes, nodes[key].key)
-      childrenItems.push({ ...nodes[key], ...{ children } })
-    }
-  }
-  return childrenItems
-}
-
-/**
- * Returns tree for given flat tree with root or without root
- * @param {TreeItem[]} nodes - flat tree. Only root has no parent
- * @returns {TreeItem[]}  - result tree
- */
-// TODO: probably remove after refactoring alterItem
-export const flatTreeToViewTree = (items: TreeItem[]): TreeItem[] => {
-  const treeItems = [] as TreeItem[]
-  const rootItem = getRootItem(items)
-  // check for existing root item. If we have no root, than return empty array
-  if (rootItem.key) {
-    const children = getChildrenItems(items, rootItem.key)
-    rootItem.children = children
-    treeItems.push(rootItem)
-  }
-  for (let i in items) {
-    if (!getItemByKey(treeItems, items[i].key)) {
-      const parent = getItemByKey(treeItems, items[i].parent)
-      if (parent) {
-        const children = getChildrenItems(items, items[i].parent)
-        parent.children.push(...children)
-      } else {
-        const children = getChildrenItems(items, items[i].key)
-        const item = { ...items[i], children }
-        treeItems.push(item)
-      }
-    }
-  }
-  return treeItems
-}
-
-// TODO: documentation
-const getIndexOfChildChain = (
-  items: DBTreeItem[],
-  pos: number,
-  parentKey: string
-): number => {
-  // pointer for case when we got to end of array
-  let pointer = pos
-  for (let i = pos; i < items.length; i++) {
-    if (items[i].parent !== parentKey) {
-      return i
-    }
-    pointer++
-  }
-  return pointer
-}
-
-/**
- * Reorder flat tree
- * @param {DBTreeItem[]} tree - flat tree to ordering
- * @returns {DBTreeItem[]} - ordered flat tree
- */
-// now it push before other children and ordering changing
-export const reorderFlatTree = (
-  tree: DBTreeItem[] = [] as DBTreeItem[]
-): DBTreeItem[] => {
-  const orderedTree = [] as DBTreeItem[]
-  if (tree.length) {
-    const currentItem = { ...tree[0] }
-    orderedTree.push(currentItem)
-    // start from second item cause we already push initial item
-    for (let i = 1; i < tree.length; i++) {
-      // check for root item first
-      if (tree[i].parent) {
-        // check for existing direct parent in ordered items
-        let pos = orderedTree.findIndex(item => item.key === tree[i].parent)
-        if (pos >= 0) {
-          const lastChildChain = getIndexOfChildChain(
-            orderedTree,
-            pos + 1,
-            tree[i].parent
-          )
-          orderedTree.splice(lastChildChain, 0, {
-            ...tree[i]
-          })
-        } else {
-          // check for existing direct children in ordered items
-          pos = orderedTree.findIndex(item => item.parent === tree[i].key)
-          if (pos >= 0) {
-            orderedTree.splice(pos, 0, {
-              ...tree[i]
-            })
-          } else {
-            // if no direct parent and children in ordered tree
-            orderedTree.push({ ...tree[i] })
-          }
+      // check for existing children
+      if (items.findIndex(item => item.parent === items[i].key) === -1) {
+        // check for existing parent
+        const parent = items.find(item => item.key === items[i].parent)
+        if (parent) {
+          result = items[i]
+          items.splice(i, 1)
+          parent.children.push(result)
+          return result
         }
-      } else {
-        orderedTree.splice(0, 0, { ...tree[i] })
       }
     }
   }
-  return orderedTree
+  return result
+}
+
+/**
+ * Reorder tree. Takes tree and place childrens to its parents.
+ * @param {TreeItem[]} tree - disordered or ordered tree. Tree will be
+ * rebuild anyway
+ * @returns {TreeItem[]} - ordered tree
+ */
+export const reorderTree = (tree: TreeItem[]): TreeItem[] => {
+  let result = getFlatTreeItemsArray(tree)
+  let limiter = 0
+  let movedChild = null
+  do {
+    movedChild = moveToParentByStep(result)
+    limiter++
+  } while (movedChild != null && limiter < maxIterationCount)
+  return result
 }
 
 /**
@@ -190,10 +78,9 @@ export const reorderFlatTree = (
  * @param {TreeItem} item - item to be deleted
  *
  */
-// TODO: rename to markAsDeleted or something else
 export const deleteItem = (cache: TreeItem[], itemToDelete: TreeItem) => {
   const cacheTree = cloneDeep(cache)
-  deleteItemFromTree(cacheTree, itemToDelete)
+  markItemAsDeleted(cacheTree, itemToDelete)
   return cacheTree
 }
 
@@ -203,57 +90,52 @@ export const deleteItem = (cache: TreeItem[], itemToDelete: TreeItem) => {
  * @param {TreeItem} item - item to be deleted
  *
  */
-// TODO: rename to markAsDeleted
-export const deleteItemFromTree = (
-  tree: TreeItem[],
-  itemToDelete: TreeItem
-) => {
+export const markItemAsDeleted = (tree: TreeItem[], itemToDelete: TreeItem) => {
   const startItem = getItemByKey(tree, itemToDelete.key)
   if (startItem) {
     // delete item and all his children
     startItem.deleted = !startItem.deleted
     for (let i = 0; i < startItem.children.length; i++) {
-      deleteItemFromTree(startItem.children, startItem.children[i])
+      markItemAsDeleted(startItem.children, startItem.children[i])
     }
   }
 }
 
 /**
- * mark item in DBTreeItem[] as deleted
- * @param {DBTreeItem[]} dbItems - dbItems array where we should mark item deleted
+ * mark item in flat array TreeItem[] as deleted
+ * @param {TreeItem[]} items - items array where we should mark item deleted
  * @param {TreeItem} item - item to be deleted
  */
-const markDBTreeItemAsDeleted = (
-  dbItems: DBTreeItem[],
-  itemToDelete: DBTreeItem
+const markFlatTreeItemAsDeleted = (
+  items: TreeItem[],
+  itemToDelete: TreeItem
 ) => {
   // first step delete item itself
-  const pos = dbItems.findIndex(dbItem => dbItem.key === itemToDelete.key)
+  const pos = items.findIndex(item => item.key === itemToDelete.key)
   if (pos !== -1) {
-    dbItems[pos].deleted = itemToDelete.deleted
+    items[pos].deleted = itemToDelete.deleted
   }
   // delete children
-  const childrens = dbItems.filter(dbItem => dbItem.parent === itemToDelete.key)
+  const childrens = items.filter(dbItem => dbItem.parent === itemToDelete.key)
   for (let i = 0; i < childrens.length; i++) {
     childrens[i].deleted = itemToDelete.deleted
-    markDBTreeItemAsDeleted(dbItems, childrens[i])
+    markFlatTreeItemAsDeleted(items, childrens[i])
   }
 }
 
 /**
- * Alter item's title
+ * Alter item's title.
  * @param {TreeItem[]} cache - current view tree
  * @param {TreeItem} item - item to be altered
- *
+ * @returns {TreeItem[]} - returns new cache with altered item title
  */
-// TODO: refactore without flat tree
 export const alterItem = (cache: TreeItem[], itemToAltered: TreeItem) => {
-  const flatTree = getFlattenTree(cache)
-  const index = flatTree.findIndex(item => item.key === itemToAltered.key)
-  if (index !== -1) {
-    flatTree[index].title = itemToAltered.title
+  const resultCache = cloneDeep(cache)
+  const alterItem = getItemByKey(resultCache, itemToAltered.key)
+  if (alterItem) {
+    alterItem.title = itemToAltered.title
   }
-  return flatTreeToViewTree(flatTree)
+  return resultCache
 }
 
 /**
@@ -266,110 +148,44 @@ export const addItemToTree = (
   tree: TreeItem[],
   newItem: TreeItem
 ): TreeItem[] => {
-  const flatTree = getFlatDBTreeItemArray(tree)
+  const flatTree = getFlatTreeItemsArray(tree)
   if (flatTree.findIndex(item => item.key === newItem.key) === -1) {
     flatTree.push(newItem)
   }
-  const orderedTree = reorderFlatTree(flatTree)
+  const orderedTree = reorderTree(flatTree)
 
-  return dbTreeItemToTreeItem(orderedTree)
+  return orderedTree
 }
 
 /**
- * returns flatten tree
+ * returns flatten tree from tree
  * @param {TreeItem[]} tree - tree for flatting
- * @returns {DBTreeItem[]} nodes - flat tree
+ * @returns {DBTreeItem[]} - flat tree
  */
-export const getFlatDBTreeItemArray = (tree: TreeItem[]): DBTreeItem[] => {
-  const resultFlatTree = [] as DBTreeItem[]
+export const getFlatTreeItemsArray = (tree: TreeItem[]): TreeItem[] => {
+  const resultFlatTree = [] as TreeItem[]
   for (const i in tree) {
-    const childs = getFlatDBTreeItemArray(tree[i].children)
-    const { children, ...rest } = tree[i]
-    resultFlatTree.push({ ...rest }, ...childs)
+    const childs = getFlatTreeItemsArray(tree[i].children)
+    resultFlatTree.push({ ...tree[i], children: [] }, ...childs)
   }
   return resultFlatTree
 }
 
 /**
- * Returns tree for given root node key
- * @param {TreeItem[]} nodes - flat tree. Only root has no parent
- * @param {string} parent - root node key. It can be any node element. Tree
- * will be created from received key
- * @returns {TreeItem[]}  - result tree
- */
-export const getChildrenArray = (
-  nodes: DBTreeItem[],
-  parent: string
-): TreeItem[] => {
-  const childrenItems = [] as TreeItem[]
-  for (const key in nodes) {
-    if (nodes[key].parent === parent) {
-      const children = getChildrenArray(nodes, nodes[key].key)
-      childrenItems.push({
-        ...{ ...nodes[key], children: [] },
-        ...{ children }
-      })
-    }
-  }
-  return childrenItems
-}
-
-/**
- * Returns root node
- * @param {TreeItem[]} nodes - flat tree. Only root has no parent
- * @returns {TreeItem} - root node object
- */
-export const getRootNode = (nodes: DBTreeItem[]): TreeItem => {
-  for (let key in nodes) {
-    if (!nodes[key].parent) {
-      return { ...nodes[key], children: [] as TreeItem[] }
-    }
-  }
-  return {} as TreeItem
-}
-
-/**
- * Returns tree for given flat tree with root or without root
- * @param {DBTreeItem[]} nodes - flat tree. Only root has no parent
- * @returns {TreeItem[]}  - result tree
- */
-export const dbTreeItemToTreeItem = (items: DBTreeItem[]): TreeItem[] => {
-  const treeItems = [] as TreeItem[]
-  const rootItem = getRootNode(items)
-  // check for existing root item. If we have no root, than return empty array
-  if (rootItem.key) {
-    const children = getChildrenArray(items, rootItem.key)
-    rootItem.children = children
-    treeItems.push(rootItem)
-  }
-  for (let i in items) {
-    if (!getItemByKey(treeItems, items[i].key)) {
-      const parent = getItemByKey(treeItems, items[i].parent)
-      if (parent) {
-        const children = getChildrenArray(items, items[i].parent)
-        parent.children.push(...children)
-      } else {
-        const children = getChildrenArray(items, items[i].key)
-        const item = { ...items[i], children }
-        treeItems.push(item)
-      }
-    }
-  }
-  return treeItems
-}
-
-/**
- * Returns tree for given root node key
+ * Returns tree for given root node key from flat source DB
  * @param {DBTreeItemList} nodes - original DB with root
  * @param {string} parent - root node key. It can be any node element. Tree
  * will be created from received key
  * @returns {TreeItem[]}  - result tree
  */
-export const getTree = (nodes: DBTreeItemList, parent: string): TreeItem[] => {
+export const getTreeFromFlatDB = (
+  nodes: DBTreeItemList,
+  parent: string
+): TreeItem[] => {
   const childrenItems = [] as TreeItem[]
   for (const key in nodes) {
     if (nodes[key].parent === parent) {
-      const children = getTree(nodes, key)
+      const children = getTreeFromFlatDB(nodes, key)
       childrenItems.push({ ...nodes[key], ...{ children } })
     }
   }
@@ -389,34 +205,23 @@ export const adoptDBItemsToTree = (
   const rootItem = { ...items[rootDBKey] }
   // check for existing root item. If we have no root, than return empty array
   if (rootItem.key) {
-    const children = getTree(items, rootItem.key)
+    const children = getTreeFromFlatDB(items, rootItem.key)
     treeItems.push({ ...rootItem, children })
   }
 
   return treeItems
 }
 
-// TODO: probably remove
 /**
- * returns flatten tree
- * @param {TreeItem[]} tree - tree for flatting
- * @returns {TreeItem[]} nodes - flat tree
+ * get all keys array from tree. For fetch updated items from
+ * original DB to cache. Because delete operation may take effect
+ * on missed cache items
+ * @param {TreeItem[]} tree - flat tree of cache
+ * @returns {string[]} - keys array
  */
-export const getFlattenTree = (tree: TreeItem[]): TreeItem[] => {
-  const resultFlatTree = [] as TreeItem[]
-  for (const i in tree) {
-    const children = getFlattenTree(tree[i].children)
-    resultFlatTree.push({ ...tree[i], children: [] }, ...children)
-  }
-  return resultFlatTree
-}
-
-/**
- * get all keys array from tree
- */
-export const getKeys = (tree: TreeItem[]): string[] => {
+export const getKeysFromFlatTree = (tree: TreeItem[]): string[] => {
   const keys = [] as string[]
-  const flatTree = getFlattenTree(tree)
+  const flatTree = getFlatTreeItemsArray(tree)
   for (const i in flatTree) {
     keys.push(flatTree[i].key)
   }
@@ -425,8 +230,15 @@ export const getKeys = (tree: TreeItem[]): string[] => {
 
 /**
  * Generate unuque key for new item. It based on real DB items keys.
+ * @param {DBTreeItem[]} dbItems - source flat DB tree with original keys
+ * @param {string} parentKey - key of parent wich will be base for build
+ * unique key
+ * @returns {string} - unique key
  */
-const generateUniqueKey = (dbItems: DBTreeItem[], parentKey: string) => {
+const generateUniqueKey = (
+  dbItems: DBTreeItem[],
+  parentKey: string
+): string => {
   // maxCount for prevent infinity loop
   const maxCount = 1000
   let appendIndexCount = 0
@@ -440,59 +252,68 @@ const generateUniqueKey = (dbItems: DBTreeItem[], parentKey: string) => {
   return `${parentKey}-error`
 }
 
-const getDBTreeItemsByKeys = (
-  dbItems: DBTreeItem[],
+/**
+ * Returns flat tree of TreeItem[] by received keys array
+ * @param {TreeItem[]} items - source flat tree
+ * @param {string[]} keys - list of items keys for return array of this items
+ * @returns {TreeItem[]} - flat tree of items by received keys
+ */
+const getFlatTreeItemsByKeys = (
+  items: TreeItem[],
   keys: string[]
-): DBTreeItem[] => {
-  const resultDBItems = [] as DBTreeItem[]
+): TreeItem[] => {
+  const resultItems = [] as TreeItem[]
   for (let i = 0; i < keys.length; i++) {
-    const item = dbItems.find(dbItem => dbItem.key === keys[i])
+    const item = items.find(item => item.key === keys[i])
     if (item) {
-      resultDBItems.push({ ...item })
+      resultItems.push({ ...item })
     }
   }
-  return resultDBItems
+  return resultItems
 }
+
 /**
- * Apply cache to DB
+ * Apply changis from cache to source DB
+ * @param {TreeItem[]} sourceItems - source tree
+ * @param {TreeItem[]} cache - cache tree
+ * @returns {[TreeItem[], TreeItem[]]} - ordered trees
+ * with applyed changes as [sourceItems, cache]
+ *
  */
 export const applyCache = (
-  dbItems: TreeItem[],
+  sourceItems: TreeItem[],
   cache: TreeItem[]
 ): [TreeItem[], TreeItem[]] => {
-  const resultDBItems = getFlatDBTreeItemArray(dbItems)
-  const resultCache = getFlatDBTreeItemArray(cache)
+  const resultSourceItems = getFlatTreeItemsArray(sourceItems)
+  const resultCache = getFlatTreeItemsArray(cache)
 
   for (let i = 0; i < resultCache.length; i++) {
     const currentItem = resultCache[i]
-    const posItem = resultDBItems.findIndex(
+    const posItem = resultSourceItems.findIndex(
       item => item.key === currentItem.key
     )
     if (posItem !== -1) {
       // if item exist then updating
-      resultDBItems[posItem] = { ...currentItem }
-      markDBTreeItemAsDeleted(resultDBItems, currentItem)
+      resultSourceItems[posItem] = { ...currentItem }
+      markFlatTreeItemAsDeleted(resultSourceItems, currentItem)
     } else {
       // if new item
-      const uniqueKey = generateUniqueKey(dbItems, currentItem.parent)
-      resultDBItems.push({ ...currentItem, key: uniqueKey })
+      const uniqueKey = generateUniqueKey(sourceItems, currentItem.parent)
+      resultSourceItems.push({ ...currentItem, key: uniqueKey })
       // replace old key by unique one
       resultCache[i].key = uniqueKey
     }
   }
-  const orderedResultDBItems = reorderFlatTree(resultDBItems)
+  const orderedResultSourceItems = reorderTree(resultSourceItems)
   // get all keys to update cache. Some items may be deleted after apply
   const keys = []
-  let orderedResultCache = [] as DBTreeItem[]
+  let orderedResultCache = [] as TreeItem[]
   for (let i = 0; i < resultCache.length; i++) {
     keys.push(resultCache[i].key)
-    orderedResultCache = reorderFlatTree(
-      getDBTreeItemsByKeys(resultDBItems, keys)
+    orderedResultCache = reorderTree(
+      getFlatTreeItemsByKeys(resultSourceItems, keys)
     )
   }
 
-  return [
-    dbTreeItemToTreeItem(orderedResultDBItems),
-    dbTreeItemToTreeItem(orderedResultCache)
-  ]
+  return [orderedResultSourceItems, orderedResultCache]
 }

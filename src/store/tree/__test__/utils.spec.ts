@@ -1,10 +1,9 @@
 import { defaultDBFlatTree } from '../constants'
 import {
-  getRootItem,
-  getChildrenItems,
   getItemByKey,
   adoptDBItemsToTree,
-  getFlattenTree
+  getFlatTreeItemsArray,
+  reorderTree
 } from '../utils'
 
 /**
@@ -119,34 +118,112 @@ const testTree = [
 ]
 
 describe('test functions with empty data', () => {
-  it('should return empty root node', () => {
-    let rootNode = getRootItem({})
-    expect(rootNode).toEqual({})
-    rootNode = getRootItem()
-    expect(rootNode).toEqual({})
-  })
-
-  it('should return empty array as a nested nodes', () => {
-    let nestedNodes = getChildrenItems()
-    expect(nestedNodes).toEqual([])
-    nestedNodes = getChildrenItems({}, '')
-    expect(nestedNodes).toEqual([])
-  })
-
-  it('should return empty array as a result tree', () => {
+  it('adoptDBItemsToTree. Should return empty array as a result tree', () => {
     let tree = adoptDBItemsToTree()
     expect(tree).toEqual([])
   })
+  it('getItemByKey. Should return null as a founded item', () => {
+    let tree = getItemByKey()
+    expect(tree).toBe(null)
+  })
+  
 })
 
 describe('should work with existing data correctly', () => {
-  it('should return nested nodes for given root', () => {
-    const testPartialNodes = testTree[0].children[1]
-    const partialTree = getChildrenItems(
-      defaultDBFlatTree,
-      testPartialNodes.key
-    )
-    expect(partialTree).toEqual(testPartialNodes.children)
+  it('should reorder tree', () => {
+    const disorderedTree = [
+      {
+        title: '0-0-0-0-0',
+        parent: '0-0-0-1',
+        deleted: false,
+        key: '0-0-0-0-0',
+        children: []
+      },
+      {
+        title: '0-0-0-0',
+        parent: '0-0-1',
+        deleted: false,
+        key: '0-0-0-0',
+        children: []
+      },
+      {
+        title: 'child of root - 0',
+        parent: '0',
+        deleted: false,
+        key: '0-0',
+        children: [
+          {
+            title: '0-0-0',
+            parent: '0-0',
+            deleted: false,
+            key: '0-0-0',
+            children: []
+          },
+          {
+            title: '0-0-2',
+            parent: '0-0',
+            deleted: false,
+            key: '0-0-2',
+            children: []
+          }
+        ]
+      },
+      {
+        title: '0-0-1',
+        parent: '0-0',
+        deleted: false,
+        key: '0-0-1'
+      }
+    ]
+
+    const orderedTree = [
+      {
+        title: '0-0-0-0-0',
+        parent: '0-0-0-1',
+        deleted: false,
+        key: '0-0-0-0-0',
+        children: []
+      },
+      {
+        title: 'child of root - 0',
+        parent: '0',
+        deleted: false,
+        key: '0-0',
+        children: [
+          {
+            title: '0-0-0',
+            parent: '0-0',
+            deleted: false,
+            key: '0-0-0',
+            children: []
+          },
+          {
+            title: '0-0-2',
+            parent: '0-0',
+            deleted: false,
+            key: '0-0-2',
+            children: []
+          },
+          {
+            title: '0-0-1',
+            parent: '0-0',
+            deleted: false,
+            key: '0-0-1',
+            children: [
+              {
+                title: '0-0-0-0',
+                parent: '0-0-1',
+                deleted: false,
+                key: '0-0-0-0',
+                children: []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    const resultTree = reorderTree(disorderedTree)
+    expect(resultTree).toEqual(orderedTree)
   })
 
   it('should return full tree with nested nodes', () => {
@@ -341,7 +418,7 @@ describe('should work with existing data correctly', () => {
       }
     ]
 
-    const result = getFlattenTree(tree)
+    const result = getFlatTreeItemsArray(tree)
     expect(result).toEqual(flat)
   })
 })
