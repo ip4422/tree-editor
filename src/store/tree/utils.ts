@@ -1,5 +1,5 @@
 import { cloneDeep } from 'lodash'
-import { TreeItem, DBTreeItemList, DBTreeItem } from './types'
+import { TreeItem, DBTreeItemList } from './types'
 import { rootDBKey, maxIterationCount } from './constants'
 
 /**
@@ -239,13 +239,13 @@ export const getKeysFromFlatTree = (tree: TreeItem[]): string[] => {
 
 /**
  * Generate unuque key for new item. It based on real DB items keys.
- * @param {DBTreeItem[]} dbItems - source flat DB tree with original keys
+ * @param {TreeItem[]} dbItems - source flat DB tree with original keys
  * @param {string} parentKey - key of parent wich will be base for build
  * unique key
  * @returns {string} - unique key
  */
 export const generateUniqueKey = (
-  dbItems: DBTreeItem[] = [],
+  dbItems: TreeItem[] = [],
   parentKey: string
 ): string => {
   // maxCount for prevent infinity loop
@@ -307,7 +307,7 @@ export const applyCache = (
       markFlatTreeItemAsDeleted(resultSourceItems, currentItem)
     } else {
       // if new item
-      const uniqueKey = generateUniqueKey(sourceItems, currentItem.parent)
+      const uniqueKey = generateUniqueKey(resultSourceItems, currentItem.parent)
       resultSourceItems.push({ ...currentItem, key: uniqueKey })
       // replace old key by unique one
       resultCache[i].key = uniqueKey
