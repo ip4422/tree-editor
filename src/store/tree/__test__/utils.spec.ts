@@ -9,7 +9,12 @@ import {
   alterItem,
   addItemToTree,
   adoptDBItemsToTree,
-  getFlatTreeItemsArray
+  getFlatTreeItemsArray,
+  getTreeFromFlatDB,
+  getKeysFromFlatTree,
+  generateUniqueKey,
+  getFlatTreeItemsByKeys,
+  applyCache
 } from '../utils'
 
 /**
@@ -124,11 +129,6 @@ const testTree = [
 ]
 
 describe('test functions with empty data', () => {
-  it('adoptDBItemsToTree. Should return empty array as a result tree', () => {
-    let tree = adoptDBItemsToTree()
-    expect(tree).toEqual([])
-  })
-
   it('getItemByKey. Should return null as a founded item', () => {
     let tree = getItemByKey()
     expect(tree).toBe(null)
@@ -169,6 +169,41 @@ describe('test functions with empty data', () => {
   it('addItemToTree. Should return [] with empty children as a result altering item without data', () => {
     let tree = addItemToTree()
     expect(tree).toEqual([{ children: [] }])
+  })
+
+  it('getFlatTreeItemsArray. Should return [] without data', () => {
+    let tree = getFlatTreeItemsArray()
+    expect(tree).toEqual([])
+  })
+
+  it('getTreeFromFlatDB. Should return [] without data', () => {
+    let tree = getTreeFromFlatDB()
+    expect(tree).toEqual([])
+  })
+
+  it('adoptDBItemsToTree. Should return empty array as a result tree', () => {
+    let tree = adoptDBItemsToTree()
+    expect(tree).toEqual([])
+  })
+
+  it('getKeysFromFlatTree. Should return [] if call without data', () => {
+    let keys = getKeysFromFlatTree()
+    expect(keys).toEqual([])
+  })
+
+  it('generateUniqueKey. Should return "undefined-0" if call without data', () => {
+    let keys = generateUniqueKey()
+    expect(keys).toBe('undefined-0')
+  })
+
+  it('getFlatTreeItemsByKeys. Should return [] if call without data', () => {
+    let tree = getFlatTreeItemsByKeys()
+    expect(tree).toEqual([])
+  })
+
+  it('applyCache. Should return [], [] if call without data', () => {
+    let keys = applyCache()
+    expect(keys).toEqual([[], []])
   })
 })
 

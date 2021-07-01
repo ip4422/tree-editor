@@ -244,8 +244,8 @@ export const getKeysFromFlatTree = (tree: TreeItem[]): string[] => {
  * unique key
  * @returns {string} - unique key
  */
-const generateUniqueKey = (
-  dbItems: DBTreeItem[],
+export const generateUniqueKey = (
+  dbItems: DBTreeItem[] = [],
   parentKey: string
 ): string => {
   // maxCount for prevent infinity loop
@@ -267,9 +267,9 @@ const generateUniqueKey = (
  * @param {string[]} keys - list of items keys for return array of this items
  * @returns {TreeItem[]} - flat tree of items by received keys
  */
-const getFlatTreeItemsByKeys = (
+export const getFlatTreeItemsByKeys = (
   items: TreeItem[],
-  keys: string[]
+  keys: string[] = []
 ): TreeItem[] => {
   const resultItems = [] as TreeItem[]
   for (let i = 0; i < keys.length; i++) {
