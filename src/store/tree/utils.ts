@@ -83,6 +83,7 @@ export const deleteItem = (
   itemToDelete: TreeItem = {} as TreeItem
 ) => {
   const cacheTree = cloneDeep(cache)
+  itemToDelete.deleted = !itemToDelete.deleted
   markItemAsDeleted(cacheTree, itemToDelete)
   return cacheTree
 }
@@ -100,9 +101,12 @@ export const markItemAsDeleted = (
   const startItem = getItemByKey(tree, itemToDelete.key)
   if (startItem) {
     // delete item and all his children
-    startItem.deleted = !startItem.deleted
+    startItem.deleted = itemToDelete.deleted
     for (let i = 0; i < startItem.children.length; i++) {
-      markItemAsDeleted(startItem.children, startItem.children[i])
+      markItemAsDeleted(startItem.children, {
+        ...startItem.children[i],
+        deleted: itemToDelete.deleted
+      })
     }
   }
 }
