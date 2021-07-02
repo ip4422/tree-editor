@@ -31,6 +31,7 @@
     "build": "craco build",
     "test": "craco test"
   },
+  "homepage": "https://ip4422.github.io/shop-app",
   "eslintConfig": {
     "extends": [
       "react-app",
