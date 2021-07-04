@@ -159,11 +159,16 @@ export const alterItem = (
  */
 export const addItemToTree = (
   tree: TreeItem[] = [] as TreeItem[],
-  newItem: TreeItem
+  newItem: TreeItem = {} as TreeItem
 ): TreeItem[] => {
   const flatTree = getFlatTreeItemsArray(tree)
   if (flatTree.findIndex(item => item.key === newItem.key) === -1) {
     flatTree.push(newItem)
+  }
+  for (let i = 0; i < flatTree.length; i++) {
+    if (flatTree[i].deleted) {
+      markFlatTreeItemAsDeleted(flatTree, flatTree[i])
+    }
   }
   const orderedTree = reorderTree(flatTree)
 
@@ -308,25 +313,47 @@ export const applyCache = (
     if (posItem !== -1) {
       // if item exist then updating
       resultSourceItems[posItem] = { ...currentItem }
-      markFlatTreeItemAsDeleted(resultSourceItems, currentItem)
+      if (resultSourceItems[i].deleted) {
+        markFlatTreeItemAsDeleted(resultSourceItems, currentItem)
+      }
     } else {
       // if new item
       const uniqueKey = generateUniqueKey(resultSourceItems, currentItem.parent)
       resultSourceItems.push({ ...currentItem, key: uniqueKey })
       // replace old key by unique one
-      resultCache[i].key = uniqueKey
+      updateChildrenKeys(resultCache, currentItem.key, uniqueKey)
+      currentItem.key = uniqueKey
+      // resultCache[i].key = uniqueKey
     }
   }
+  for (let i = 0; i < resultSourceItems.length; i++) {
+    if (resultSourceItems[i].deleted) {
+      markFlatTreeItemAsDeleted(resultSourceItems, resultSourceItems[i])
+    }
+  }
+
   const orderedResultSourceItems = reorderTree(resultSourceItems)
   // get all keys to update cache. Some items may be deleted after apply
   const keys = []
   let orderedResultCache = [] as TreeItem[]
   for (let i = 0; i < resultCache.length; i++) {
     keys.push(resultCache[i].key)
-    orderedResultCache = reorderTree(
-      getFlatTreeItemsByKeys(resultSourceItems, keys)
-    )
   }
+  orderedResultCache = reorderTree(
+    getFlatTreeItemsByKeys(resultSourceItems, keys)
+  )
 
   return [orderedResultSourceItems, orderedResultCache]
+}
+
+const updateChildrenKeys = (
+  cache: TreeItem[],
+  oldParentKey: string,
+  newParentKey: string
+) => {
+  for (let i = 0; i < cache.length; i++) {
+    if (cache[i].parent === oldParentKey) {
+      cache[i].parent = newParentKey
+    }
+  }
 }

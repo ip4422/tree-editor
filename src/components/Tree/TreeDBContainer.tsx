@@ -8,6 +8,7 @@ import { addItemAction, TreeItem } from '../../store'
 export const TreeDBContainer = () => {
   const [selectedItem, setSelectedItem] = useState({} as TreeItem)
   const items = useAppSelector(state => state.tree.items)
+  const expanded = useAppSelector(state => state.tree.itemsExpandedKeys)
   const dispatch = useAppDispatch()
 
   // store selected item for further editing or create new item
@@ -41,6 +42,7 @@ export const TreeDBContainer = () => {
             checkStrictly
             showIcon
             icon={getIcon}
+            expandedKeys={expanded}
             onSelect={onSelect}
             selectedKeys={[selectedItem.key]}
             treeData={items}

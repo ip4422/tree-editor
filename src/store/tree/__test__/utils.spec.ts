@@ -1385,6 +1385,7 @@ describe('should work with existing data correctly', () => {
         ]
       }
     ]
+    
     const resultDBCache = [
       {
         title: '0-0-0-0-0',
@@ -1427,5 +1428,170 @@ describe('should work with existing data correctly', () => {
 
     let keys = applyCache(sourceDB, cache)
     expect(keys).toEqual([resultDBItems, resultDBCache])
+  })
+
+  it('should generate unique key for nested new items', () => {
+    const cache = [
+      {
+        title: 'root title',
+        parent: '',
+        deleted: true,
+        key: '0',
+        children: []
+      },
+      {
+        title: '0-0-0-0-0',
+        parent: '0-0-0-1',
+        deleted: false,
+        key: '0-0-0-0-0',
+        children: [
+          {
+            key: '0-0-0-0-0-0-0',
+            title: '1',
+            parent: '0-0-0-0-0',
+            deleted: false,
+            children: [
+              {
+                key: '0-0-0-0-0-0-0-0-0',
+                title: '1',
+                parent: '0-0-0-0-0-0-0',
+                deleted: false,
+                children: []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+
+    const resultDBTree = [
+      {
+        title: 'root title',
+        parent: '',
+        deleted: true,
+        key: '0',
+        children: [
+          {
+            title: 'child of root - 1',
+            parent: '0',
+            deleted: true,
+            key: '0-1',
+            children: [
+              {
+                title: '0-1-0',
+                parent: '0-1',
+                deleted: true,
+                key: '0-1-0',
+                children: []
+              },
+              {
+                title: '0-1-1',
+                parent: '0-1',
+                deleted: true,
+                key: '0-1-1',
+                children: []
+              },
+              {
+                title: '0-1-2',
+                parent: '0-1',
+                deleted: true,
+                key: '0-1-2',
+                children: []
+              }
+            ]
+          },
+          {
+            title: 'child of root - 2',
+            parent: '0',
+            deleted: true,
+            key: '0-2',
+            children: []
+          },
+          {
+            title: 'child of root - 0',
+            parent: '0',
+            deleted: true,
+            key: '0-0',
+            children: [
+              {
+                title: '0-0-0',
+                parent: '0-0',
+                deleted: true,
+                key: '0-0-0',
+                children: []
+              },
+              {
+                title: '0-0-2',
+                parent: '0-0',
+                deleted: true,
+                key: '0-0-2',
+                children: []
+              },
+              {
+                title: '0-0-1',
+                parent: '0-0',
+                deleted: true,
+                key: '0-0-1',
+                children: [
+                  {
+                    title: '0-0-0-0',
+                    parent: '0-0-1',
+                    deleted: true,
+                    key: '0-0-0-0',
+                    children: []
+                  },
+
+                  {
+                    title: '0-0-0-2',
+                    parent: '0-0-1',
+                    deleted: true,
+                    key: '0-0-0-2',
+                    children: []
+                  },
+                  {
+                    title: '0-0-0-1',
+                    parent: '0-0-1',
+                    deleted: true,
+                    key: '0-0-0-1',
+                    children: [
+                      {
+                        title: '0-0-0-0-0',
+                        parent: '0-0-0-1',
+                        deleted: true,
+                        key: '0-0-0-0-0',
+                        children: [
+                          {
+                            key: '0-0-0-0-0-0',
+                            title: '1',
+                            parent: '0-0-0-0-0',
+                            deleted: true,
+                            children: [
+                              {
+                                key: '0-0-0-0-0-0-0',
+                                title: '1',
+                                parent: '0-0-0-0-0-0',
+                                deleted: true,
+                                children: []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+
+    const [resultDBItems] = applyCache(testTree, cache)
+    expect(resultDBItems).toEqual(resultDBTree)
+
+    // let tree = addItemToTree(cache, newItem1)
+    // tree = addItemToTree(tree, newItem11)
+    // expect(tree).toEqual(cacheWithItems)
   })
 })

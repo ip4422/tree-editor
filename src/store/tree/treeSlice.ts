@@ -16,12 +16,14 @@ export interface TreeState {
   items: TreeItem[]
   cache: TreeItem[]
   cacheExpandedKeys: string[]
+  itemsExpandedKeys: string[]
 }
 
 const initialState: TreeState = {
   items: adoptDBItemsToTree(defaultDBFlatTree),
   cache: [] as TreeItem[],
-  cacheExpandedKeys: [] as string[]
+  cacheExpandedKeys: [] as string[],
+  itemsExpandedKeys: getKeysFromFlatTree(adoptDBItemsToTree(defaultDBFlatTree))
 }
 
 interface ApplyAction {
@@ -46,11 +48,16 @@ const treeSlice = createSlice({
     apply: (state, action: PayloadAction<ApplyAction>) => {
       state.items = action.payload.dbItems
       state.cache = action.payload.cache
+      state.cacheExpandedKeys = getKeysFromFlatTree(action.payload.cache)
+      state.itemsExpandedKeys = getKeysFromFlatTree(action.payload.dbItems)
     },
     reset: state => {
       state.items = adoptDBItemsToTree(defaultDBFlatTree)
       state.cache = [] as TreeItem[]
       state.cacheExpandedKeys = [] as string[]
+      state.itemsExpandedKeys = getKeysFromFlatTree(
+        adoptDBItemsToTree(defaultDBFlatTree)
+      )
     }
   }
 })
